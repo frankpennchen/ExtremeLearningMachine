@@ -29,7 +29,7 @@ df_batch=df_batch[5:]
 window_size=120
 n1=15
 n2=4*n1
-sigma=0.01
+sigma=0.015
 epsilon=0.5
 theta=0.1
 varphi=0.0
@@ -139,7 +139,7 @@ def model_training(ith,df,gwm):
 def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
     prediction_list=model_training(ith,df,gwm) #real price
     prediction_list_next=model_training(ith+1,df,gwm) #real price
-    print(prediction_list,df_batch[ith,3])
+    #print(prediction_list,df_batch[ith,3])
     #print(prediction_list_next)
     #next_action=0
     upith=np.max(prediction_list)
@@ -179,14 +179,16 @@ def strategy_test(df,gwm):
     for ith in range(test_start,test_end):
         next_action,buy_price,sell_price=trading_strategy(ith,df,gwm,current_action,buy_price,sell_price)
         if current_action==0 and next_action==1:
-            portfolio_value=portfolio_value*(sell_price-buy_price-transaction_cost*sell_price)/buy_price
+            portfolio_value+=portfolio_value*(sell_price-buy_price-transaction_cost*sell_price)/buy_price
             current_action=next_action
-            print('trading')
+            print('period',ith,'trading','profit:',(sell_price-buy_price-transaction_cost*sell_price)/buy_price)
         else:
             current_action=next_action
             portfolio_value=portfolio_value
         #print("current value",portfolio_value)
-            
+    if next_action==0:
+        portfolio_value+=portfolio_value*(df_batch[test_end-1,3]-buy_price-transaction_cost*df_batch[test_end-1,3])/buy_price
+        
     
     return portfolio_value  
 ###############################################################################
@@ -205,8 +207,8 @@ def error_test(df,gwm):
         mean_error_rate+=(np.mean(np.abs(prediction[:,0]-actual)/np.mean(actual)))/float(test_end-test_start)
     return (max_error_rate,mean_error_rate)
 ###############################################################################    
-#final_value=strategy_test(df,grey_weight_matrix)
-#print(final_value)
+final_value=strategy_test(df,grey_weight_matrix)
+print(final_value)
 max_error_rate,mean_error_rate=error_test(df,grey_weight_matrix)
 print(max_error_rate,mean_error_rate)
 
