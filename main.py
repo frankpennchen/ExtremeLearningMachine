@@ -97,15 +97,16 @@ def model_training(ith,df,gwm):
         W_matrix=gwm[(ith-window_size+i-n2):(ith-window_size+i),:]
         for j in range(num_feature):
             I_matrix[j,i]=0.0
+            I_matrix_weight[j,i]=0.0
             for k in range(n2):
                 I_matrix[j,i]+=W_matrix[k,j]*F_matrix[k,j]
                 I_matrix_weight[j,i]+=W_matrix[k,j]
             I_matrix[j,i]=I_matrix[j,i]/I_matrix_weight[j,i]
     #print(I_matrix)
-    A_matrix=np.random.normal(1.0/num_feature,1.0,(num_feature,num_hidden_layer))
+    A_matrix=np.random.normal(1.0/num_feature,1.0,(num_hidden_layer,num_feature))
     B_list=np.random.normal(0.0,1.0,(num_hidden_layer,1))
 
-    I_matrix=np.dot(np.transpose(A_matrix),I_matrix)+B_list
+    I_matrix=np.dot(A_matrix,I_matrix)+B_list
     I_matrix=1.0/(1.0+np.exp(-I_matrix))
     #print(I_matrix)
                 
@@ -122,7 +123,7 @@ def model_training(ith,df,gwm):
             I_prediction_list[j,0]+=W_matrix[k,j]*F_matrix[k,j]
             I_prediction_list_weight[j,0]+=W_matrix[k,j]
         I_prediction_list[j,0]=I_prediction_list[j,0]/I_prediction_list_weight[j,0]
-    I_prediction_list=np.dot(np.transpose(A_matrix),I_prediction_list)+B_list
+    I_prediction_list=np.dot(A_matrix,I_prediction_list)+B_list
     I_prediction_list=1.0/(1.0+np.exp(-I_prediction_list))
     #print(I_prediction_list.shape)
     T_prediction_list=np.dot(beta_matrix,I_prediction_list)
