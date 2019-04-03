@@ -139,14 +139,28 @@ def model_training(ith,df,gwm):
 @jit(nopython=True, parallel=True)    
 def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
     prediction_list=model_training(ith,df,gwm) #real price
+    upithnext=0.0
+    lowithnext=0.0
     prediction_list_next=model_training(ith+1,df,gwm) #real price
+    upithnext+=np.max(prediction_list_next)/5.0
+    lowithnext+=np.min(prediction_list_next)/5.0    
+    prediction_list_next=model_training(ith+2,df,gwm) #real price
+    upithnext+=np.max(prediction_list_next)/5.0
+    lowithnext+=np.min(prediction_list_next)/5.0    
+    prediction_list_next=model_training(ith+3,df,gwm) #real price
+    upithnext+=np.max(prediction_list_next)/5.0
+    lowithnext+=np.min(prediction_list_next)/5.0    
+    prediction_list_next=model_training(ith+4,df,gwm) #real price
+    upithnext+=np.max(prediction_list_next)/5.0
+    lowithnext+=np.min(prediction_list_next)/5.0    
+    prediction_list_next=model_training(ith+5,df,gwm) #real price
+    upithnext+=np.max(prediction_list_next)/5.0
+    lowithnext+=np.min(prediction_list_next)/5.0    
     #print(prediction_list,df_batch[ith,3])
     #print(prediction_list_next)
     #next_action=0
-    upith=np.max(prediction_list)
+    upith=np.max(prediction_list) 
     lowith=np.min(prediction_list)
-    upithnext=np.max(prediction_list_next)
-    lowithnext=np.min(prediction_list_next)
 
     if current_action==1:
         if (np.abs(df_batch[ith,3]-lowith)<=sigma*df_batch[ith,3]) and (lowithnext>=lowith):
@@ -157,14 +171,15 @@ def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
                 next_action=current_action
         else:
             next_action=current_action
-    elif (np.abs(df_batch[ith,3]-upith)<=sigma*df_batch[ith,3]) and (upithnext<=upith):
-        if (df_batch[ith,3]-buy_price)>=varphi or (buy_price-df_batch[ith,3])>=theta*buy_price:
-            sell_price=df_batch[ith,3]
-            next_action=1
+    else:
+        if (np.abs(df_batch[ith,3]-upith)<=sigma*df_batch[ith,3]) and (upithnext<=upith):
+            if (df_batch[ith,3]-buy_price)>=varphi or (buy_price-df_batch[ith,3])>=theta*buy_price:
+                sell_price=df_batch[ith,3]
+                next_action=1
+            else:
+                next_action=current_action
         else:
             next_action=current_action
-    else:
-        next_action=current_action
 
     return (next_action,buy_price,sell_price)
 ###############################################################################
@@ -172,8 +187,8 @@ def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
 def strategy_test(df,gwm):
     
     current_action=1 #buy
-    test_start=2176
-    test_end=2376    
+    test_start=2200
+    test_end=2400
     buy_price=min_close_price
     sell_price=max_close_price
     portfolio_value=10000.0
@@ -189,7 +204,8 @@ def strategy_test(df,gwm):
         #print("current value",portfolio_value)
     if next_action==0:
         portfolio_value+=portfolio_value*(df_batch[test_end-1,3]-buy_price-transaction_cost*df_batch[test_end-1,3])/buy_price
-        
+    
+    print('Period price change',(df_batch[test_end,3]-df_batch[test_start,3])/df_batch[test_start,3])
     
     return portfolio_value  
 ###############################################################################
@@ -197,8 +213,8 @@ def strategy_test(df,gwm):
 def error_test(df,gwm):
     max_error_rate=0.0
     mean_error_rate=0.0
-    test_start=2400
-    test_end=2500 
+    test_start=200
+    test_end=3000 
     for ith in range(test_start,test_end):
         prediction=model_training(ith,df,gwm)
         #print(prediction[:,0])

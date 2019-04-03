@@ -143,7 +143,7 @@ def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
     #print(prediction_list,df_batch[ith,3])
     #print(prediction_list_next)
     #next_action=0
-    upith=np.max(prediction_list)
+    upith=np.max(prediction_list) 
     lowith=np.min(prediction_list)
     upithnext=np.max(prediction_list_next)
     lowithnext=np.min(prediction_list_next)
@@ -157,14 +157,15 @@ def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
                 next_action=current_action
         else:
             next_action=current_action
-    elif (np.abs(df_batch[ith,3]-upith)<=sigma*df_batch[ith,3]) and (upithnext<=upith):
-        if (df_batch[ith,3]-buy_price)>=varphi or (buy_price-df_batch[ith,3])>=theta*buy_price:
-            sell_price=df_batch[ith,3]
-            next_action=1
+    else:
+        if (np.abs(df_batch[ith,3]-upith)<=sigma*df_batch[ith,3]) and (upithnext<=upith):
+            if (df_batch[ith,3]-buy_price)>=varphi or (buy_price-df_batch[ith,3])>=theta*buy_price:
+                sell_price=df_batch[ith,3]
+                next_action=1
+            else:
+                next_action=current_action
         else:
             next_action=current_action
-    else:
-        next_action=current_action
 
     return (next_action,buy_price,sell_price)
 ###############################################################################
@@ -172,8 +173,8 @@ def trading_strategy(ith,df,gwm,current_action,buy_price,sell_price):
 def strategy_test(df,gwm):
     
     current_action=1 #buy
-    test_start=2176
-    test_end=2376    
+    test_start=200
+    test_end=3000
     buy_price=min_close_price
     sell_price=max_close_price
     portfolio_value=10000.0
@@ -197,8 +198,8 @@ def strategy_test(df,gwm):
 def error_test(df,gwm):
     max_error_rate=0.0
     mean_error_rate=0.0
-    test_start=2400
-    test_end=2500 
+    test_start=200
+    test_end=3000 
     for ith in range(test_start,test_end):
         prediction=model_training(ith,df,gwm)
         #print(prediction[:,0])

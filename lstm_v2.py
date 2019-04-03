@@ -10,6 +10,10 @@ from keras.layers import LSTM
 from keras.layers import Dropout
 
 dataset = pd.read_csv('./AAPL.csv',index_col="Date")
+dataset['MA']=dataset['Close'].rolling(window=5).mean()
+dataset['ROC']=dataset['Close'].pct_change(periods=5)
+
+dataset=dataset[5:]
 
 sc = MinMaxScaler(feature_range = (0, 1))
 training_set=dataset[:2900]
@@ -54,7 +58,7 @@ regressor.add(Dense(units = 1))
 regressor.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
 # Fitting the RNN to the Training set
-regressor.fit(X_train, y_train, epochs = 100, batch_size = 32)
+regressor.fit(X_train, y_train, epochs = 4, batch_size = 32)
 
 
 
@@ -70,7 +74,7 @@ X_test, y_test = np.array(X_test), np.array(y_test)
 # Reshaping
 X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 predicted_stock_price = regressor.predict(X_test)
-predicted_stock_price=sc.inverse_transform(np.repeat(predicted_stock_price,5,axis=1))[:,0]
+predicted_stock_price=sc.inverse_transform(np.repeat(predicted_stock_price,7,axis=1))[:,0]
 np.savetxt('prediction.csv', predicted_stock_price, delimiter=',')
 np.savetxt('real.csv', test_set.values[window_size:,0], delimiter=',')
 
